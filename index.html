@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>错题回顾 · 间隔重复复习</title>
+<style>
+:root{
+  --bg:#f5f3f0; --card:#fff; --sidebar:#1e293b; --side-text:#cbd5e1;
+  --pri:#5b8def; --pri-light:#e8f0fe; --ok:#22c55e; --ok-light:#f0fdf4;
+  --bad:#ef4444; --bad-light:#fef2f2; --warn:#f59e0b; --warn-light:#fffbeb;
+  --txt:#1e293b; --txt2:#64748b; --brd:#e2e8f0; --r:12px;
+  --sh:0 1px 3px rgba(0,0,0,.06); --sh-lg:0 10px 25px rgba(0,0,0,.08);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  background:var(--bg); color:var(--txt); display:flex; min-height:100vh; line-height:1.6;
+}
+/* ── Sidebar ── */
+.sidebar{
+  width:220px; min-width:220px; background:var(--sidebar); color:var(--side-text);
+  display:flex; flex-direction:column; padding:24px 0; position:sticky; top:0; height:100vh; overflow-y:auto;
+}
+.side-logo{
+  padding:0 20px 24px; font-size:20px; font-weight:700; color:#fff; letter-spacing:.5px;
+  border-bottom:1px solid rgba(255,255,255,.08); margin-bottom:12px;
+}
+.nav-item{
+  display:flex; align-items:center; gap:10px; padding:12px 20px; cursor:pointer;
+  font-size:15px; transition:all .2s; border-left:3px solid transparent; user-select:none;
+}
+.nav-item:hover{background:rgba(255,255,255,.06);color:#e2e8f0}
+.nav-item.active{background:rgba(255,255,255,.1);color:#fff;border-left-color:var(--pri);font-weight:600}
+.nav-badge{
+  margin-left:auto; background:var(--bad); color:#fff; font-size:11px; font-weight:700;
+  padding:2px 8px; border-radius:10px; min-width:20px; text-align:center;
+}
+.nav-badge:empty{display:none}
+.side-foot{
+  margin-top:auto; padding:16px 20px 0; border-top:1px solid rgba(255,255,255,.08);
+  font-size:12px; color:rgba(255,255,255,.3);
+}
+/* ── Main ── */
+.main{flex:1; padding:32px 40px; max-width:960px; overflow-y:auto}
+.page{display:none}
+.page.active{display:block; animation:fadeIn .25s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+h1{font-size:26px;font-weight:700;margin-bottom:4px}
+.subtitle{color:var(--txt2);font-size:14px;margin-bottom:24px}
+/* ── Cards ── */
+.card{background:var(--card);border-radius:var(--r);padding:20px 24px;box-shadow:var(--sh);margin-bottom:16px;border:1px solid var(--brd)}
+.card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+/* ── Stat grid ── */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:14px;margin-bottom:24px}
+.stat-card{background:var(--card);border-radius:var(--r);padding:18px 20px;box-shadow:var(--sh);border:1px solid var(--brd);text-align:center}
+.stat-val{font-size:36px;font-weight:700;line-height:1.2}
+.stat-lbl{font-size:13px;color:var(--txt2);margin-top:4px}
+.stat-card.pri .stat-val{color:var(--pri)}
+.stat-card.ok .stat-val{color:var(--ok)}
+.stat-card.bad .stat-val{color:var(--bad)}
+.stat-card.warn .stat-val{color:var(--warn)}
+/* ── Buttons ── */
+.btn{
+  display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:8px;
+  border:none;font-size:14px;font-weight:500;cursor:pointer;transition:all .2s;
+  white-space:nowrap;font-family:inherit;
+}
+.btn-pri{background:var(--pri);color:#fff}
+.btn-pri:hover{filter:brightness(1.08);transform:translateY(-1px);box-shadow:0 4px 12px rgba(91,141,239,.3)}
+.btn-ok{background:var(--ok);color:#fff}
+.btn-ok:hover{filter:brightness(1.08);transform:translateY(-1px);box-shadow:0 4px 12px rgba(34,197,94,.3)}
+.btn-bad{background:var(--bad);color:#fff}
+.btn-bad:hover{filter:brightness(1.08);transform:translateY(-1px);box-shadow:0 4px 12px rgba(239,68,68,.3)}
+.btn-out{
+  background:transparent;border:1.5px solid var(--brd);color:var(--txt);
+}
+.btn-out:hover{border-color:var(--pri);color:var(--pri);background:var(--pri-light)}
+.btn-sm{padding:5px 12px;font-size:13px}
+.btn-lg{padding:12px 28px;font-size:16px;font-weight:600}
+.btn-group{display:flex;gap:8px;flex-wrap:wrap}
+/* ── Forms ── */
+.fg{margin-bottom:14px}
+.fl{display:block;font-size:14px;font-weight:500;margin-bottom:5px}
+.fi,.fs{
+  width:100%;padding:10px 14px;border:1.5px solid var(--brd);border-radius:8px;
+  font-size:14px;font-family:inherit;transition:border-color .2s;background:#fff;
+}
+.fi:focus,.fs:focus{outline:none;border-color:var(--pri);box-shadow:0 0 0 3px rgba(91,141,239,.1)}
+.fhint{font-size:12px;color:var(--txt2);margin-top:4px}
+.frow{display:flex;gap:12px;align-items:end}
+.frow>*{flex:1}
+/* ── Review ── */
+.rev-group{margin-bottom:20px}
+.rev-gtitle{
+  font-size:14px;font-weight:600;color:var(--txt2);margin-bottom:10px;display:flex;align-items:center;gap:8px;
+}
+.rev-item{
+  display:flex;align-items:center;gap:16px;padding:14px 18px;background:var(--card);
+  border-radius:var(--r);margin-bottom:8px;box-shadow:var(--sh);border:1px solid var(--brd);transition:all .2s;
+}
+.rev-item:hover{box-shadow:var(--sh-lg)}
+.rev-item.overdue{border-left:3px solid var(--bad)}
+.rev-item.today{border-left:3px solid var(--warn)}
+.rev-num{font-size:18px;font-weight:700;min-width:80px}
+.rev-meta{flex:1;min-width:0}
+.rev-meta .bname{font-size:12px;color:var(--txt2)}
+.rev-meta .linfo{font-size:12px;color:var(--pri);margin-top:2px}
+.rev-badge{font-size:11px;padding:3px 8px;border-radius:6px;font-weight:600}
+.rev-badge.overdue{background:var(--bad-light);color:var(--bad)}
+.rev-badge.today{background:var(--warn-light);color:var(--warn)}
+.rev-actions{display:flex;gap:8px;flex-shrink:0}
+/* ── Table ── */
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;padding:10px 14px;border-bottom:2px solid var(--brd);font-weight:600;color:var(--txt2);font-size:13px;white-space:nowrap}
+td{padding:10px 14px;border-bottom:1px solid var(--brd)}
+tr:hover td{background:#f8fafc}
+.lvl-dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
+.lvl-0{background:#ef4444}.lvl-1{background:#f59e0b}.lvl-2{background:#84cc16}.lvl-3{background:#22c55e}.lvl-4{background:#06b6d4}
+.mst-badge{background:var(--ok-light);color:var(--ok);padding:2px 10px;border-radius:10px;font-size:12px;font-weight:600}
+.book-tag{
+  display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:6px;
+  font-size:12px;font-weight:500;background:#f1f5f9;color:#475569;
+}
+/* ── Empty ── */
+.empty{text-align:center;padding:48px 24px;color:var(--txt2)}
+.empty .icon{font-size:48px;margin-bottom:16px;opacity:.6}
+.empty h3{color:var(--txt);margin-bottom:8px}
+/* ── Progress ── */
+.prog-bar{height:8px;background:var(--brd);border-radius:4px;overflow:hidden;margin:12px 0}
+.prog-fill{height:100%;background:var(--pri);border-radius:4px;transition:width .3s}
+/* ── Toast ── */
+.toast{
+  position:fixed;bottom:24px;right:24px;background:#1e293b;color:#fff;
+  padding:12px 20px;border-radius:10px;font-size:14px;font-weight:500;z-index:200;
+  animation:slideUp .3s ease;box-shadow:0 8px 24px rgba(0,0,0,.2);
+}
+@keyframes slideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+/* ── Confetti ── */
+.confetti-wrap{position:fixed;inset:0;pointer-events:none;z-index:300}
+.confetti-p{
+  position:absolute;width:10px;height:10px;
+  animation:cf 1.2s ease-out forwards;
+}
+@keyframes cf{0%{transform:translateY(-100px) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
+/* ── Responsive ── */
+@media(max-width:768px){
+  body{flex-direction:column}
+  .sidebar{width:100%;min-width:0;height:auto;position:relative;flex-direction:row;flex-wrap:wrap;padding:12px;gap:4px;overflow-x:auto}
+  .side-logo{width:100%;border-bottom:none;padding:4px 12px;margin:0;font-size:18px}
+  .nav-item{padding:8px 14px;font-size:13px;border-left:none;border-bottom:2px solid transparent;white-space:nowrap}
+  .nav-item.active{border-left:none;border-bottom-color:var(--pri)}
+  .side-foot{display:none}
+  .main{padding:16px}
+  .stat-grid{grid-template-columns:repeat(2,1fr);gap:10px}
+  .rev-item{flex-wrap:wrap}.rev-actions{width:100%;justify-content:flex-end}
+  .frow{flex-direction:column}h1{font-size:22px}
+}
+@media(max-width:480px){
+  .sidebar{gap:2px;padding:8px}
+  .nav-item{padding:6px 10px;font-size:12px;gap:4px}
+  .stat-grid{grid-template-columns:1fr 1fr}
+  .stat-val{font-size:26px}
+}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="side-logo">📝 错题回顾</div>
+  <div class="nav-item active" data-page="dash"><span>📊</span>仪表盘</div>
+  <div class="nav-item" data-page="review"><span>📝</span>今日复习<span class="nav-badge" id="badge"></span></div>
+  <div class="nav-item" data-page="add"><span>➕</span>添加错题</div>
+  <div class="nav-item" data-page="books"><span>📚</span>书本管理</div>
+  <div class="nav-item" data-page="list"><span>📋</span>所有错题</div>
+  <div class="nav-item" data-page="stats"><span>📈</span>学习统计</div>
+  <div class="side-foot">数据存于浏览器本地<br>定期导出备份 ⚡<br><span style="display:flex;align-items:center;gap:4px;margin-top:4px;cursor:pointer;color:rgba(255,255,255,.5)" onclick="nav('stats');setTimeout(()=>document.getElementById('syncCard')?.scrollIntoView({behavior:'smooth'}),200)" title="云同步设置"><span style="font-size:14px">☁️</span><span style="font-size:11px" id="syncStatus">'+(SC.gistId?'已连接':'未连接')+'</span></span></div>
+</nav>
+
+<main class="main" id="main"></main>
+<div id="toasts"></div>
+<div class="confetti-wrap" id="confetti"></div>
+
+<script>
+// ═══════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════
+const KEY='wr_v3';
+let D=load();
+
+function load(){
+  try{
+    const r=JSON.parse(localStorage.getItem(KEY));
+    if(!r) return {books:[],probs:[]};
+    r.books=r.books||[];
+    r.probs=(r.probs||[]).map(p=>({...p,level:p.level??0,next:p.next||null,status:p.status||'active',hist:p.hist||[]}));
+    return r;
+  }catch{return {books:[],probs:[]};}
+}
+function save(){localStorage.setItem(KEY,JSON.stringify(D));updateBadge();}
+function uid(){return 'id_'+Date.now()+'_'+Math.random().toString(36).slice(2,8);}
+
+// Sync config
+const SK='wr_sync_v1';
+function loadSync(){try{const r=JSON.parse(localStorage.getItem(SK));return r||{token:'',gistId:'',lastSync:null};}catch{return{token:'',gistId:'',lastSync:null};}}
+function saveSyncCfg(c){localStorage.setItem(SK,JSON.stringify(c));}
+let SC=loadSync();
+
+// ═══════════════════════════════════════════
+// GITHUB GIST SYNC
+// ═══════════════════════════════════════════
+const GIST_FN='mistake-review.json';
+async function gistAPI(method,path,body,token){
+  const opts={method,headers:{'Authorization':'Bearer '+(token||SC.token),'Accept':'application/vnd.github.v3+json'}};
+  if(body){opts.headers['Content-Type']='application/json';opts.body=JSON.stringify(body);}
+  const r=await fetch('https://api.github.com/gists'+(path||''),opts);
+  const ct=await r.text();
+  let j;try{j=JSON.parse(ct);}catch{throw new Error('GitHub 返回异常 ('+r.status+')');}
+  if(!r.ok)throw new Error(j.message||'请求失败 ('+r.status+')');
+  return j;
+}
+async function createGist(token){
+  const t=token||SC.token;if(!t)throw new Error('请先设置 GitHub Token');
+  const content=JSON.stringify({...D,_syncedAt:new Date().toISOString()});
+  const j=await gistAPI('POST','',{description:'📝 错题回顾数据',public:false,files:{[GIST_FN]:{content}}},t);
+  SC.gistId=j.id;SC.token=t;SC.lastSync=new Date().toISOString();saveSyncCfg(SC);
+  return j.id;
+}
+async function uploadGist(){
+  if(!SC.gistId)throw new Error('请先创建云端备份');
+  const content=JSON.stringify({...D,_syncedAt:new Date().toISOString()});
+  await gistAPI('PATCH','/'+SC.gistId,{files:{[GIST_FN]:{content}}});
+  SC.lastSync=new Date().toISOString();saveSyncCfg(SC);
+}
+async function downloadGist(){
+  if(!SC.gistId)throw new Error('请先创建云端备份');
+  const j=await gistAPI('GET','/'+SC.gistId);
+  if(!j.files||!j.files[GIST_FN])throw new Error('Gist 中没有找到数据文件');
+  const c=JSON.parse(j.files[GIST_FN].content);if(!c.books||!c.probs)throw new Error('云端数据格式不正确');
+  const sa=c._syncedAt;delete c._syncedAt;
+  D=c;save();
+  SC.lastSync=sa||j.updated_at;saveSyncCfg(SC);
+  return SC.lastSync;
+}
+
+// ═══════════════════════════════════════════
+// SPACED REPETITION
+// Intervals (days): 1→3→7→14→30→mastered
+// ═══════════════════════════════════════════
+const IV=[1,3,7,14,30];
+const MAX=IV.length; // =5, levels 0-4, level 5=mastered
+
+function today(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function addDays(d,n){const p=d.split('-').map(Number),dt=new Date(p[0],p[1]-1,p[2]+n);return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');}
+function fmtRel(d){
+  if(!d)return'—';
+  const t=new Date(today()+'T00:00:00'),dt=new Date(d+'T00:00:00'),diff=Math.floor((dt-t)/86400000);
+  if(diff===0)return'今天';if(diff===1)return'明天';if(diff===-1)return'昨天';
+  if(diff<0)return Math.abs(diff)+'天前';return diff+'天后';
+}
+function fmtDate(d){
+  if(!d)return'—';const dt=new Date(d+'T00:00:00');
+  return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
+}
+function lvlLabel(lv){return lv>=MAX?'已掌握':'第'+(lv+1)+'次复习';}
+function ivDays(lv){return lv>=MAX?null:IV[Math.min(lv,IV.length-1)];}
+
+function review(id,correct){
+  const p=D.probs.find(x=>x.id===id);if(!p)return{err:'not found'};
+  const wasMastered=p.status==='mastered',td=today();
+  p.hist.push({date:td,result:correct?'correct':'wrong'});
+  if(correct){p.level=Math.min(p.level+1,MAX);}
+  else{p.level=0;}
+  if(p.level>=MAX){p.status='mastered';p.next=null;}
+  else{p.status='active';p.next=addDays(td,IV[p.level]);}
+  save();
+  return{problem:p,newlyMastered:!wasMastered&&p.status==='mastered'};
+}
+
+function skipOne(id){
+  const p=D.probs.find(x=>x.id===id);if(!p)return;
+  p.next=addDays(today(),1);save();
+}
+
+// ═══════════════════════════════════════════
+// QUERIES
+// ═══════════════════════════════════════════
+function bname(bid){return D.books.find(b=>b.id===bid)?.name||'(已删除)';}
+function todayReviews(){
+  const td=today();
+  return D.probs.filter(p=>p.status==='active'&&p.next&&p.next<=td).sort((a,b)=>a.next.localeCompare(b.next));
+}
+function stats(){
+  const td=today(),act=D.probs.filter(p=>p.status==='active'),mst=D.probs.filter(p=>p.status==='mastered');
+  const due=act.filter(p=>p.next&&p.next<=td),overdue=due.filter(p=>p.next<td);
+  const w7=addDays(td,-6);
+  const recent=D.probs.flatMap(p=>p.hist.filter(h=>h.date>=w7));
+  const rOk=recent.filter(h=>h.result==='correct').length;
+  return{
+    total:D.probs.length,active:act.length,mastered:mst.length,
+    due:due.length,overdue:overdue.length,
+    wkAcc:recent.length?Math.round(rOk/recent.length*100):null,
+    wkRev:recent.length,wkAdd:D.probs.filter(p=>p.created>=w7).length,
+    bks:D.books.length
+  };
+}
+
+// ═══════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════
+const main=document.getElementById('main'),badge=document.getElementById('badge');
+function updateBadge(){const n=todayReviews().length;badge.textContent=n||'';}
+
+function nav(page){
+  document.querySelectorAll('.nav-item').forEach(e=>e.classList.remove('active'));
+  const it=document.querySelector('[data-page="'+page+'"]');if(it)it.classList.add('active');
+  render(page);
+}
+function render(p){
+  switch(p){
+    case'dash':dash();break;case'review':rev();break;case'add':add();break;
+    case'books':books();break;case'list':plist();break;case'stats':statsPage();break;
+    default:dash();
+  }
+}
+
+// ── Dashboard ──
+function dash(){
+  const st=stats(),td=today(),reviews=todayReviews();
+  let h='<h1>📊 仪表盘</h1><p class="subtitle">'+fmtDate(td)+' · 坚持就是胜利 💪</p>';
+  h+='<div class="stat-grid">';
+  h+='<div class="stat-card bad"><div class="stat-val">'+st.due+'</div><div class="stat-lbl">今日待复习'+(st.overdue?' (含'+st.overdue+'题逾期)':'')+'</div></div>';
+  h+='<div class="stat-card pri"><div class="stat-val">'+st.active+'</div><div class="stat-lbl">学习中</div></div>';
+  h+='<div class="stat-card ok"><div class="stat-val">'+st.mastered+'</div><div class="stat-lbl">已掌握</div></div>';
+  h+='<div class="stat-card warn"><div class="stat-val">'+st.total+'</div><div class="stat-lbl">错题总数</div></div>';
+  h+='</div>';
+
+  // Forecast
+  const fc=[];for(let i=0;i<7;i++){const d=addDays(td,i);fc.push({date:d,count:D.probs.filter(p=>p.status==='active'&&p.next===d).length});}
+  const mx=Math.max(...fc.map(f=>f.count),1);
+  h+='<div class="card"><h3 style="margin-bottom:8px">📅 未来7天复习量预测</h3><div style="display:flex;gap:8px;align-items:end;height:110px;padding:8px 0;">';
+  fc.forEach((f,i)=>{
+    const ht=Math.max(f.count/mx*100,4),isT=i===0;
+    h+='<div style="flex:1;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:end;height:100%">';
+    h+='<div style="font-size:12px;font-weight:600;margin-bottom:4px;'+(isT?'color:var(--pri)':'')+'">'+f.count+'</div>';
+    h+='<div style="width:100%;max-width:40px;height:'+ht+'px;background:'+(isT?'var(--pri)':'#cbd5e1')+';border-radius:6px 6px 0 0;transition:height .3s"></div>';
+    h+='<div style="font-size:10px;color:var(--txt2);margin-top:6px">'+f.date.slice(5)+'</div></div>';
+  });
+  h+='</div></div>';
+
+  // Today preview
+  if(reviews.length){
+    const g=groupBy(reviews,r=>bname(r.bookId));
+    h+='<div class="card"><div class="card-head"><h3>📝 今日待复习 '+reviews.length+' 题</h3><button class="btn btn-pri btn-sm" onclick="nav(\'review\')">去复习 →</button></div>';
+    h+='<div style="font-size:14px;color:var(--txt2)">按书统计：';
+    for(const[nm,items]of Object.entries(g))h+='<span class="book-tag">'+nm+' ×'+items.length+'</span> ';
+    h+='</div></div>';
+  }else{
+    h+='<div class="card" style="text-align:center;padding:40px"><div style="font-size:48px;margin-bottom:12px">🎉</div><h3>今天没有需要复习的题目</h3><p style="color:var(--txt2);margin-top:4px">做得好！去添加新的错题吧。</p><button class="btn btn-pri" style="margin-top:16px" onclick="nav(\'add\')">➕ 添加错题</button></div>';
+  }
+
+  // Recently mastered
+  const rm=D.probs.filter(p=>p.status==='mastered').sort((a,b)=>{
+    const la=a.hist[a.hist.length-1],lb=b.hist[b.hist.length-1];
+    return (lb?.date||'').localeCompare(la?.date||'');
+  }).slice(0,5);
+  if(rm.length){
+    h+='<div class="card"><h3>🏆 最近掌握的题目</h3><div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">';
+    rm.forEach(p=>{h+='<span class="book-tag" style="background:var(--ok-light);color:var(--ok)">'+bname(p.bookId)+' #'+p.number+'</span>';});
+    h+='</div></div>';
+  }
+
+  if(st.wkRev>0){
+    h+='<div class="card"><h3>📈 本周概况</h3><div style="display:flex;gap:40px;flex-wrap:wrap;margin-top:8px">';
+    h+='<div><span style="color:var(--txt2);font-size:13px">本周复习</span><br><span style="font-size:22px;font-weight:700">'+st.wkRev+'</span> 次</div>';
+    h+='<div><span style="color:var(--txt2);font-size:13px">正确率</span><br><span style="font-size:22px;font-weight:700">'+(st.wkAcc??'—')+'%</span></div>';
+    h+='<div><span style="color:var(--txt2);font-size:13px">本周新增</span><br><span style="font-size:22px;font-weight:700">'+st.wkAdd+'</span> 题</div>';
+    h+='</div></div>';
+  }
+  main.innerHTML=h;
+}
+
+// ── Today's Review ──
+let _revTotal=0,_revDone=0;
+function rev(){
+  const reviews=todayReviews();_revTotal=reviews.length;_revDone=0;
+  if(!reviews.length){
+    main.innerHTML='<h1>📝 今日复习</h1><p class="subtitle">'+fmtDate(today())+'</p><div class="empty"><div class="icon">🎉</div><h3>今天没有需要复习的题目</h3><p>所有题目都已复习完毕或在未来安排中。继续保持！</p><button class="btn btn-pri" style="margin-top:16px" onclick="nav(\'add\')">➕ 添加新错题</button></div>';
+    return;
+  }
+  const td=today(),overdue=reviews.filter(p=>p.next<td).length;
+  let h='<h1>📝 今日复习</h1><p class="subtitle">'+fmtDate(td)+' · 共 '+reviews.length+' 题待复习'+(overdue?' ('+overdue+'题逾期)':'')+'</p>';
+  h+='<div class="prog-bar"><div class="prog-fill" id="rp" style="width:0%"></div></div>';
+  h+='<div style="font-size:13px;color:var(--txt2);margin-bottom:20px" id="rpt">0 / '+reviews.length+' 已完成</div>';
+
+  const g=groupBy(reviews,r=>bname(r.bookId));
+  for(const[bn,items]of Object.entries(g)){
+    h+='<div class="rev-group"><div class="rev-gtitle">📚 '+bn+' <span style="font-weight:400;color:var(--txt2)">('+items.length+'题)</span></div>';
+    items.forEach(p=>{
+      const ov=p.next<td,cls=ov?'overdue':'today';
+      const badText=ov?'逾期'+Math.floor((new Date(td+'T00:00:00')-new Date(p.next+'T00:00:00'))/86400000)+'天':'今天';
+      h+='<div class="rev-item '+cls+'" id="ri-'+p.id+'">';
+      h+='<div class="rev-num">#'+p.number+'</div>';
+      h+='<div class="rev-meta"><span class="rev-badge '+cls+'">'+badText+'</span>';
+      h+='<span style="font-size:12px;color:var(--txt2);margin-left:8px">'+lvlLabel(p.level)+' · 间隔'+ivDays(p.level)+'天</span>';
+      h+='<div style="margin-top:4px;font-size:12px;color:var(--txt2)">已复习 '+p.hist.length+' 次';
+      if(p.hist.length)h+=' · 上次'+(p.hist[p.hist.length-1].result==='correct'?'✅':'❌');
+      h+='</div></div>';
+      h+='<div class="rev-actions">';
+      h+='<button class="btn btn-ok" onclick="doReview(\''+p.id+'\',true)">✅ 做对了</button>';
+      h+='<button class="btn btn-bad" onclick="doReview(\''+p.id+'\',false)">❌ 做错了</button>';
+      h+='<button class="btn btn-out btn-sm" onclick="doSkip(\''+p.id+'\')">⏭</button>';
+      h+='</div></div>';
+    });
+    h+='</div>';
+  }
+  main.innerHTML=h;
+}
+
+function doReview(id,correct){
+  const r=review(id,correct);if(r.err){toast(r.err);return;}
+  const el=document.getElementById('ri-'+id);
+  if(el){el.style.opacity='0';el.style.transform='translateX(20px)';el.style.transition='all .3s';setTimeout(()=>el.remove(),300);}
+  _revDone++;
+  const pct=Math.round(_revDone/_revTotal*100);
+  const pb=document.getElementById('rp'),pt=document.getElementById('rpt');
+  if(pb)pb.style.width=pct+'%';if(pt)pt.textContent=_revDone+' / '+_revTotal+' 已完成';
+  if(!correct){toast('❌ 已记录，明天再复习这道题');}
+  if(r.newlyMastered){toast('🎉 恭喜掌握！这道题以后不再需要复习了');confetti();}
+  if(_revDone>=_revTotal){
+    setTimeout(()=>{
+      main.innerHTML='<h1>📝 今日复习</h1><div class="empty"><div class="icon">🎉</div><h3>今日复习全部完成！</h3><p>太棒了！今天完成了 '+_revTotal+' 道题目的复习。</p><button class="btn btn-pri" style="margin-top:16px" onclick="nav(\'dash\')">返回仪表盘</button></div>';
+    },400);
+  }
+}
+
+function doSkip(id){skipOne(id);const el=document.getElementById('ri-'+id);if(el){el.style.opacity='0';el.style.transition='all .3s';setTimeout(()=>el.remove(),300);}_revDone++;}
+
+// ── Add Problem ──
+let _addState={bid:null,bname:''};
+function add(){
+  let h='<h1>➕ 添加错题</h1><p class="subtitle">记录今天做错的题目，明天开始复习</p>';
+  h+='<div class="card"><div class="fg"><label class="fl">选择书本</label>';
+  h+='<select class="fs" id="addSel" onchange="onSel()"><option value="">-- 请选择书本 --</option>';
+  D.books.forEach(b=>{h+='<option value="'+b.id+'">'+b.name+'</option>';});
+  h+='<option value="__new__">➕ 添加新书...</option></select></div>';
+  h+='<div id="newBk" style="display:none"><div class="fg"><label class="fl">新书名</label><div class="frow"><input class="fi" id="newBkNm" placeholder="例如：李永乐660题"><button class="btn btn-out" onclick="doAddBook()" style="flex:0 0 auto">确认添加</button></div></div></div>';
+  h+='<div id="probSec" style="display:none"><div class="fg"><label class="fl">题号</label><input class="fi" id="probNums" placeholder="输入题号，多个用逗号分隔，如：12, 15, 18-20, 25"><div class="fhint">支持：单个 "12"、多个逗号分隔 "12,15,18"、范围 "23-25"（展开为23,24,25）</div></div>';
+  h+='<button class="btn btn-pri btn-lg" onclick="doAddProbs()">✅ 添加错题</button> <span style="margin-left:8px;font-size:13px;color:var(--txt2)" id="prevCnt"></span></div></div>';
+
+  // Recent
+  h+='<div class="card"><h3>📋 最近添加的错题</h3>';
+  const rec=[...D.probs].sort((a,b)=>b.created.localeCompare(a.created)).slice(0,20);
+  if(!rec.length)h+='<div style="color:var(--txt2);font-size:14px">还没有添加过错题</div>';
+  else{h+='<div style="display:flex;flex-wrap:wrap;gap:8px">';rec.forEach(p=>{h+='<span class="book-tag">'+bname(p.bookId)+' #'+p.number+' <span style="font-size:10px;color:var(--txt2)">'+fmtRel(p.created)+'</span></span>';});h+='</div>';}
+  h+='</div>';
+
+  main.innerHTML=h;
+  const inp=document.getElementById('probNums'),pv=document.getElementById('prevCnt');
+  if(inp&&pv)inp.addEventListener('input',()=>{const parsed=parseNums(inp.value);pv.textContent=parsed.length?'将添加 '+parsed.length+' 道题':'';});
+  _addState={bid:null,bname:''};
+}
+
+function onSel(){
+  const sel=document.getElementById('addSel');
+  if(sel.value==='__new__'){document.getElementById('newBk').style.display='block';document.getElementById('probSec').style.display='none';}
+  else if(sel.value){document.getElementById('newBk').style.display='none';document.getElementById('probSec').style.display='block';_addState={bid:sel.value,bname:sel.options[sel.selectedIndex].text};}
+  else{document.getElementById('newBk').style.display='none';document.getElementById('probSec').style.display='none';}
+}
+
+function doAddBook(){
+  const inp=document.getElementById('newBkNm'),nm=inp.value.trim();
+  if(!nm){toast('请输入书名');return;}
+  if(D.books.some(b=>b.name===nm)){toast('该书已存在');return;}
+  const bk={id:uid(),name:nm,created:today()};D.books.push(bk);save();
+  toast('✅ 已添加：《'+nm+'》');
+  // refresh select
+  const sel=document.getElementById('addSel');
+  sel.innerHTML='<option value="">-- 请选择书本 --</option>'+D.books.map(b=>'<option value="'+b.id+'">'+b.name+'</option>').join('')+'<option value="__new__">➕ 添加新书...</option>';
+  sel.value=bk.id;
+  document.getElementById('newBk').style.display='none';document.getElementById('probSec').style.display='block';
+  _addState={bid:bk.id,bname:nm};inp.value='';
+}
+
+function parseNums(raw){
+  const res=[],parts=raw.split(/[,，、\s]+/).filter(Boolean);
+  parts.forEach(pt=>{
+    const m=pt.match(/^(\d+)\s*-\s*(\d+)$/);
+    if(m){const s=parseInt(m[1]),e=parseInt(m[2]);if(s<=e&&e-s<=100){for(let i=s;i<=e;i++)res.push(String(i));}else res.push(pt);}
+    else res.push(pt.trim());
+  });
+  return res;
+}
+
+function doAddProbs(){
+  if(!_addState.bid){toast('请先选择书本');return;}
+  const inp=document.getElementById('probNums'),raw=inp.value.trim();
+  if(!raw){toast('请输入题号');return;}
+  const nums=parseNums(raw);
+  if(!nums.length){toast('未识别到有效题号');return;}
+  let added=0,dups=[];
+  nums.forEach(num=>{
+    const dup=D.probs.find(p=>p.bookId===_addState.bid&&p.number===num&&p.status==='active');
+    if(dup){dups.push(num);return;}
+    D.probs.push({id:uid(),bookId:_addState.bid,number:num,level:0,next:addDays(today(),IV[0]),status:'active',hist:[],created:today()});
+    added++;
+  });
+  save();
+  if(added)toast('✅ 已添加 '+added+' 道错题到《'+_addState.bname+'》');
+  if(dups.length)toast('⚠️ '+dups.length+' 道题已存在，跳过：'+dups.join(', '));
+  inp.value='';const pv=document.getElementById('prevCnt');if(pv)pv.textContent='';
+  add();updateBadge();
+}
+
+// ── Book Management ──
+function books(){
+  let h='<h1>📚 书本管理</h1><p class="subtitle">管理你的刷题书本</p>';
+  h+='<div class="card"><div class="frow"><div class="fg" style="margin-bottom:0"><label class="fl">添加新书</label><input class="fi" id="bkInp" placeholder="输入书名"></div><button class="btn btn-pri" onclick="doAddBook2()" style="flex:0 0 auto">➕ 添加</button></div></div>';
+  if(!D.books.length){
+    h+='<div class="empty"><div class="icon">📚</div><h3>还没有添加书本</h3><p>先添加一本刷题书，然后就可以记录错题了。</p></div>';
+  }else{
+    D.books.forEach(bk=>{
+      const cnt=D.probs.filter(p=>p.bookId===bk.id).length;
+      const act=D.probs.filter(p=>p.bookId===bk.id&&p.status==='active').length;
+      const mst=D.probs.filter(p=>p.bookId===bk.id&&p.status==='mastered').length;
+      const pct=cnt?Math.round(mst/cnt*100):0;
+      h+='<div class="card"><div class="card-head"><div><h3 style="margin-bottom:2px">📖 '+bk.name+'</h3><span style="font-size:13px;color:var(--txt2)">共 '+cnt+' 题 · 学习中 '+act+' · 已掌握 '+mst+'</span></div><button class="btn btn-bad btn-sm" onclick="delBook(\''+bk.id+'\',\''+bk.name.replace(/'/g,"\\'")+'\')">删除</button></div><div class="prog-bar"><div class="prog-fill" style="width:'+pct+'%;background:var(--ok)"></div></div></div>';
+    });
+  }
+  main.innerHTML=h;
+}
+function doAddBook2(){
+  const inp=document.getElementById('bkInp'),nm=inp.value.trim();
+  if(!nm){toast('请输入书名');return;}
+  if(D.books.some(b=>b.name===nm)){toast('该书已存在');return;}
+  D.books.push({id:uid(),name:nm,created:today()});save();
+  toast('✅ 已添加：《'+nm+'》');inp.value='';books();
+}
+function delBook(id,nm){
+  if(D.probs.some(p=>p.bookId===id)){toast('该书下还有错题，请先删除错题');return;}
+  D.books=D.books.filter(b=>b.id!==id);save();
+  toast('已删除：《'+nm+'》');books();
+}
+
+// ── All Problems ──
+function plist(fBid,fStatus){
+  let h='<h1>📋 所有错题</h1><p class="subtitle">浏览和管理所有错题记录</p>';
+  h+='<div class="card" style="padding:14px 18px"><div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><span style="font-size:14px;font-weight:500">筛选：</span>';
+  h+='<select class="fs" style="width:auto" onchange="plist(this.value,document.getElementById(\'fs2\').value)" id="fs1"><option value="">全部书本</option>';
+  D.books.forEach(b=>{h+='<option value="'+b.id+'"'+(fBid===b.id?' selected':'')+'>'+b.name+'</option>';});
+  h+='</select>';
+  h+='<select class="fs" style="width:auto" onchange="plist(document.getElementById(\'fs1\').value,this.value)" id="fs2"><option value="">全部状态</option><option value="active"'+(fStatus==='active'?' selected':'')+'>学习中</option><option value="mastered"'+(fStatus==='mastered'?' selected':'')+'>已掌握</option></select>';
+  h+='<span style="color:var(--txt2);font-size:13px;margin-left:auto" id="fc"></span></div></div>';
+
+  let ps=[...D.probs];if(fBid)ps=ps.filter(p=>p.bookId===fBid);if(fStatus)ps=ps.filter(p=>p.status===fStatus);
+  ps.sort((a,b)=>b.created.localeCompare(a.created));
+
+  if(!ps.length){h+='<div class="empty"><div class="icon">📋</div><h3>没有符合条件的错题</h3></div>';}
+  else{
+    h+='<div class="card" style="padding:0;overflow:hidden"><div class="tbl-wrap"><table><thead><tr><th>书本</th><th>题号</th><th>状态</th><th>复习次数</th><th>下次复习</th><th>添加日期</th><th>操作</th></tr></thead><tbody>';
+    ps.forEach(p=>{
+      const lvl=p.status==='mastered'?'<span class="mst-badge">已掌握</span>':'<span class="lvl-dot lvl-'+Math.min(p.level,4)+'"></span>'+lvlLabel(p.level);
+      const nr=p.status==='mastered'?'—':fmtRel(p.next)+' ('+p.next+')';
+      h+='<tr><td><span class="book-tag">'+bname(p.bookId)+'</span></td><td><strong>#'+p.number+'</strong></td><td>'+lvl+'</td><td>'+p.hist.length+'次</td><td style="font-size:13px">'+nr+'</td><td style="font-size:13px;color:var(--txt2)">'+p.created+'</td>';
+      h+='<td><button class="btn btn-out btn-sm" onclick="resetProb(\''+p.id+'\')" title="重置进度">🔄</button> <button class="btn btn-bad btn-sm" onclick="delProb(\''+p.id+'\')">🗑</button></td></tr>';
+    });
+    h+='</tbody></table></div></div>';
+  }
+  main.innerHTML=h;
+  const fc=document.getElementById('fc');if(fc)fc.textContent='共 '+ps.length+' 题';
+}
+function delProb(id){if(!confirm('确定删除这道错题？'))return;D.probs=D.probs.filter(p=>p.id!==id);save();toast('已删除');plist();updateBadge();}
+function resetProb(id){
+  const p=D.probs.find(x=>x.id===id);if(!p)return;
+  p.level=0;p.status='active';p.next=addDays(today(),IV[0]);p.hist=[];save();
+  toast('🔄 已重置复习进度');plist();updateBadge();
+}
+
+// ── Stats ──
+function statsPage(){
+  const st=stats();
+  let h='<h1>📈 学习统计</h1><p class="subtitle">追踪你的学习进度</p>';
+  h+='<div class="stat-grid"><div class="stat-card"><div class="stat-val">'+st.total+'</div><div class="stat-lbl">错题总数</div></div><div class="stat-card ok"><div class="stat-val">'+st.mastered+'</div><div class="stat-lbl">已掌握</div></div><div class="stat-card pri"><div class="stat-val">'+st.active+'</div><div class="stat-lbl">学习中</div></div><div class="stat-card warn"><div class="stat-val">'+(st.total?Math.round(st.mastered/st.total*100):0)+'%</div><div class="stat-lbl">掌握率</div></div></div>';
+
+  // Per book
+  h+='<div class="card"><h3>📚 各书本进度</h3>';
+  D.books.forEach(bk=>{
+    const cnt=D.probs.filter(p=>p.bookId===bk.id).length,mst=D.probs.filter(p=>p.bookId===bk.id&&p.status==='mastered').length,pct=cnt?Math.round(mst/cnt*100):0;
+    h+='<div style="margin-bottom:16px"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-weight:500">📖 '+bk.name+'</span><span style="font-size:13px;color:var(--txt2)">'+mst+'/'+cnt+' 掌握 ('+pct+'%)</span></div><div class="prog-bar" style="height:6px"><div class="prog-fill" style="width:'+pct+'%;background:'+(pct>=80?'var(--ok)':pct>=40?'var(--pri)':'var(--warn)')+'"></div></div></div>';
+  });
+  if(!D.books.length)h+='<div style="color:var(--txt2)">还没有书本</div>';
+  h+='</div>';
+
+  // Heatmap
+  const td=today(),days={};for(let i=27;i>=0;i--)days[addDays(td,-i)]=0;
+  D.probs.forEach(p=>p.hist.forEach(hh=>{if(days.hasOwnProperty(hh.date))days[hh.date]++;}));
+  const mxD=Math.max(...Object.values(days),1);
+  h+='<div class="card"><h3>🔥 近28天复习热力图</h3><div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:8px">';
+  for(const[d,c]of Object.entries(days)){
+    const int=c/mxD,bg=c===0?'#f1f5f9':int<=.25?'#dbeafe':int<=.5?'#93c5fd':int<=.75?'#3b82f6':'#1d4ed8';
+    h+='<div style="width:32px;height:32px;border-radius:4px;background:'+bg+';display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:'+(int>.5?'#fff':'#1e293b')+';cursor:default" title="'+d+': '+c+'次复习">'+(c||'')+'</div>';
+  }
+  h+='</div><div style="display:flex;justify-content:space-between;font-size:10px;color:var(--txt2);margin-top:6px"><span>'+addDays(td,-27)+'</span><span>今天</span></div></div>';
+
+  // Export/Import
+  h+='<div class="card"><h3>⚙️ 数据管理</h3><p style="font-size:13px;color:var(--txt2);margin-bottom:12px">导出数据作为备份，或导入之前备份的数据</p><div class="btn-group"><button class="btn btn-out" onclick="exportData()">📥 导出数据</button><button class="btn btn-out" onclick="document.getElementById(\'impFile\').click()">📤 导入数据</button><button class="btn btn-bad btn-sm" onclick="clearAll()">⚠️ 清空所有数据</button></div><input type="file" id="impFile" accept=".json" style="display:none" onchange="importData(this)"></div>';
+
+  // Cloud Sync
+  let sy='<div class="card" id="syncCard"><h3>☁️ GitHub 云同步</h3>';
+  if(!SC.token){
+    sy+='<p style="font-size:13px;color:var(--txt2);margin-bottom:12px">使用 GitHub Gist 在电脑和手机之间同步数据。需要先创建一个 <a href="https://github.com/settings/tokens/new?scopes=gist&description=错题回顾同步" target="_blank" style="color:var(--pri)">GitHub Token</a>（只需勾选 <b>gist</b> 权限）。</p>';
+    sy+='<div class="fg"><label class="fl">GitHub Token</label><div class="frow"><input class="fi" id="syncToken" type="password" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"><button class="btn btn-pri" onclick="doSetToken()" style="flex:0 0 auto">💾 保存并连接</button></div></div>';
+  }else if(!SC.gistId){
+    sy+='<p style="font-size:13px;color:var(--txt2);margin-bottom:12px">Token 已设置 ✅ · 点击下方按钮在云端创建备份</p>';
+    sy+='<div class="btn-group"><button class="btn btn-pri" onclick="doCreateGist()">☁️ 创建云端备份</button> <button class="btn btn-out btn-sm" onclick="doClearToken()">更换 Token</button></div>';
+  }else{
+    sy+='<p style="font-size:13px;color:var(--txt2);margin-bottom:4px">已连接云端</p>';
+    sy+='<p style="font-size:12px;color:var(--ok);margin-bottom:12px">🟢 上次同步：'+(SC.lastSync?fmtRel(SC.lastSync.slice(0,10))+' '+SC.lastSync.slice(11,16):'从未')+'</p>';
+    sy+='<div class="btn-group"><button class="btn btn-pri" onclick="doUpload()">📤 上传到云端</button> <button class="btn btn-out" onclick="doDownload()">📥 从云端下载</button> <button class="btn btn-out btn-sm" onclick="doClearToken()">断开</button></div>';
+  }
+  sy+='</div>';
+  h+=sy;
+
+  main.innerHTML=h;
+}
+
+function exportData(){
+  const blob=new Blob([JSON.stringify(D,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download='错题回顾备份_'+today()+'.json';a.click();URL.revokeObjectURL(url);toast('📥 数据已导出');
+}
+function importData(inp){
+  const f=inp.files[0];if(!f)return;const r=new FileReader();
+  r.onload=e=>{
+    try{
+      const im=JSON.parse(e.target.result);if(!im.books||!im.probs){toast('❌ 格式不正确');return;}
+      if(!confirm('即将导入 '+im.books.length+' 本书、'+im.probs.length+' 道题。\n现有数据将被替换，确定继续？'))return;
+      D=im;save();toast('📤 数据已导入');nav('dash');
+    }catch{toast('❌ 解析失败');}
+  };r.readAsText(f);inp.value='';
+}
+function clearAll(){
+  if(!confirm('确定清空所有数据？不可恢复！\n建议先导出备份。'))return;
+  if(!confirm('再次确认：清空所有书本和错题？'))return;
+  D={books:[],probs:[]};save();toast('已清空');nav('dash');
+}
+
+// ═══════════════════════════════════════════
+// SYNC ACTIONS
+// ═══════════════════════════════════════════
+async function doSetToken(){
+  const inp=document.getElementById('syncToken'),t=inp.value.trim();
+  if(!t){toast('请输入 GitHub Token');return;}
+  // validate
+  try{
+    const r=await fetch('https://api.github.com/user',{headers:{'Authorization':'Bearer '+t,'Accept':'application/vnd.github.v3+json'}});
+    if(!r.ok)throw new Error('Token 无效');
+    SC.token=t;SC.gistId='';SC.lastSync=null;saveSyncCfg(SC);
+    toast('✅ Token 验证成功');statsPage();
+  }catch(e){toast('❌ Token 验证失败：'+e.message);}
+}
+async function doCreateGist(){
+  try{await createGist();toast('☁️ 云端备份已创建');statsPage();}
+  catch(e){toast('❌ '+e.message);}
+}
+async function doUpload(){
+  try{await uploadGist();toast('📤 已上传到云端');statsPage();}
+  catch(e){toast('❌ 上传失败：'+e.message);}
+}
+async function doDownload(){
+  if(!confirm('云端数据将覆盖本地数据，确定从云端下载？'))return;
+  try{
+    const sa=await downloadGist();
+    toast('📥 已从云端同步');nav('dash');
+  }catch(e){toast('❌ 下载失败：'+e.message);}
+}
+function doClearToken(){
+  if(!confirm('断开云同步连接？\n（云端数据不会被删除，可随时重新连接）'))return;
+  SC={token:'',gistId:'',lastSync:null};saveSyncCfg(SC);
+  toast('🔌 已断开云同步');statsPage();
+}
+
+// ═══════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════
+function groupBy(arr,fn){const m={};arr.forEach(x=>{const k=typeof fn==='function'?fn(x):x[fn];if(!m[k])m[k]=[];m[k].push(x);});return m;}
+function toast(msg){
+  const ct=document.getElementById('toasts'),el=document.createElement('div');
+  el.className='toast';el.textContent=msg;ct.appendChild(el);
+  setTimeout(()=>{el.style.opacity='0';el.style.transition='opacity .3s';setTimeout(()=>el.remove(),300);},2200);
+}
+function confetti(){
+  const ct=document.getElementById('confetti'),cols=['#5b8def','#22c55e','#f59e0b','#ef4444','#a855f7','#ec4899','#06b6d4'],frag=document.createDocumentFragment();
+  for(let i=0;i<50;i++){
+    const p=document.createElement('div');p.className='confetti-p';
+    p.style.left=Math.random()*100+'%';p.style.top=-(Math.random()*40+10)+'px';
+    p.style.background=cols[Math.floor(Math.random()*cols.length)];
+    p.style.animationDelay=Math.random()*.4+'s';p.style.animationDuration=(Math.random()*.8+1)+'s';
+    p.style.borderRadius=Math.random()>.5?'50%':'2px';
+    p.style.width=(Math.random()*8+6)+'px';p.style.height=(Math.random()*8+6)+'px';
+    frag.appendChild(p);
+  }
+  ct.appendChild(frag);setTimeout(()=>{ct.innerHTML='';},2000);
+}
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+document.querySelectorAll('.nav-item').forEach(el=>el.addEventListener('click',()=>{const p=el.dataset.page;if(p)nav(p);}));
+document.addEventListener('keydown',e=>{
+  const pages=['dash','review','add','books','list','stats'];
+  if(e.ctrlKey&&e.key>='1'&&e.key<='6'){e.preventDefault();nav(pages[parseInt(e.key)-1]);}
+});
+updateBadge();
+dash();
+
+// Check overdue on load
+const ov=todayReviews().filter(p=>p.next<today()).length;
+if(ov)setTimeout(()=>toast('⚠️ 有 '+ov+' 道题目逾期未复习'),600);
+
+console.log('📝 错题回顾系统已就绪  v3 (2026-07-28 +云同步)');
+console.log('  间隔：1天→3天→7天→14天→30天→掌握');
+console.log('  快捷键：Ctrl+1~6 切换页面');
+console.log('  今日日期(本地)：'+today());
+</script>
+</body>
+</html>
