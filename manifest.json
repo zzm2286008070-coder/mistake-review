@@ -1,0 +1,15 @@
+{
+  "name": "错题回顾",
+  "short_name": "错题回顾",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#f5f3f0",
+  "theme_color": "#1e293b",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "128x128",
+      "type": "image/png"
+    }
+  ]
+}
