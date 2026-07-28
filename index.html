@@ -612,11 +612,14 @@ function statsPage(){
     sy+='<p style="font-size:13px;color:var(--txt2);margin-bottom:12px">使用 GitHub Gist 在电脑和手机之间同步数据。需要先创建一个 <a href="https://github.com/settings/tokens/new?scopes=gist&description=错题回顾同步" target="_blank" style="color:var(--pri)">GitHub Token</a>（只需勾选 <b>gist</b> 权限）。</p>';
     sy+='<div class="fg"><label class="fl">GitHub Token</label><div class="frow"><input class="fi" id="syncToken" type="password" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"><button class="btn btn-pri" onclick="doSetToken()" style="flex:0 0 auto">💾 保存并连接</button></div></div>';
   }else if(!SC.gistId){
-    sy+='<p style="font-size:13px;color:var(--txt2);margin-bottom:12px">Token 已设置 ✅ · 点击下方按钮在云端创建备份</p>';
-    sy+='<div class="btn-group"><button class="btn btn-pri" onclick="doCreateGist()">☁️ 创建云端备份</button> <button class="btn btn-out btn-sm" onclick="doClearToken()">更换 Token</button></div>';
+    sy+='<p style="font-size:13px;color:var(--txt2);margin-bottom:12px">Token 已设置 ✅</p>';
+    sy+='<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px"><button class="btn btn-pri" onclick="doCreateGist()">☁️ 创建新备份</button></div>';
+    sy+='<p style="font-size:13px;color:var(--txt2);margin-bottom:8px">或在另一台设备上已创建过？直接连接已有备份：</p>';
+    sy+='<div class="frow"><input class="fi" id="existingGistId" placeholder="粘贴 Gist ID（在已连接设备的统计页可看到）"><button class="btn btn-out" onclick="doConnectGist()" style="flex:0 0 auto">🔗 连接</button></div>';
+    sy+='<div style="margin-top:8px"><button class="btn btn-out btn-sm" onclick="doClearToken()">更换 Token</button></div>';
   }else{
     sy+='<p style="font-size:13px;color:var(--txt2);margin-bottom:4px">已连接云端</p>';
-    sy+='<p style="font-size:12px;color:var(--ok);margin-bottom:12px">🟢 上次同步：'+(SC.lastSync?fmtRel(SC.lastSync.slice(0,10))+' '+SC.lastSync.slice(11,16):'从未')+'</p>';
+    sy+='<p style="font-size:12px;margin-bottom:12px"><span style="color:var(--ok)">🟢 上次同步：'+(SC.lastSync?fmtRel(SC.lastSync.slice(0,10))+' '+SC.lastSync.slice(11,16):'从未')+'</span><br><span style="color:var(--txt2)">Gist ID：</span><code style="font-size:11px;background:#f1f5f9;padding:2px 6px;border-radius:4px;user-select:all;word-break:break-all">'+SC.gistId+'</code></p>';
     sy+='<div class="btn-group"><button class="btn btn-pri" onclick="doUpload()">📤 上传到云端</button> <button class="btn btn-out" onclick="doDownload()">📥 从云端下载</button> <button class="btn btn-out btn-sm" onclick="doClearToken()">断开</button></div>';
   }
   sy+='</div>';
@@ -679,6 +682,16 @@ function doClearToken(){
   if(!confirm('断开云同步连接？\n（云端数据不会被删除，可随时重新连接）'))return;
   SC={token:'',gistId:'',lastSync:null};saveSyncCfg(SC);
   toast('🔌 已断开云同步');statsPage();
+}
+async function doConnectGist(){
+  const inp=document.getElementById('existingGistId'),gid=inp.value.trim();
+  if(!gid){toast('请粘贴 Gist ID');return;}
+  try{
+    const j=await gistAPI('GET','/'+gid);
+    if(!j.files||!j.files[GIST_FN])throw new Error('该 Gist 中没有错题回顾数据');
+    SC.gistId=gid;saveSyncCfg(SC);
+    toast('🔗 已连接到云端备份');statsPage();
+  }catch(e){toast('❌ 连接失败：'+e.message);}
 }
 
 // ═══════════════════════════════════════════
