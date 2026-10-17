@@ -322,6 +322,19 @@ function stats(){
   };
 }
 
+// 连续复习天数：以「当天有过至少一次复习」为打卡；今天未打卡但昨天打过，则仍视为连续（未断）
+function currentStreak(){
+  const days=new Set();
+  D.probs.forEach(p=>(p.hist||[]).forEach(h=>{if(h.date)days.add(h.date);}));
+  let streak=0,cursor=today();
+  if(!days.has(cursor)){
+    cursor=addDays(cursor,-1);
+    if(!days.has(cursor))return 0;
+  }
+  while(days.has(cursor)){streak++;cursor=addDays(cursor,-1);}
+  return streak;
+}
+
 // ═══════════════════════════════════════════
 // RENDER
 // ═══════════════════════════════════════════
@@ -343,8 +356,8 @@ function render(p){
 
 // ── Dashboard ──
 function dash(){
-  const st=stats(),td=today(),reviews=todayReviews();
-  let h='<h1>📊 仪表盘</h1><p class="subtitle">'+fmtDate(td)+' · 坚持就是胜利 💪</p>';
+  const st=stats(),td=today(),reviews=todayReviews(),streak=currentStreak();
+  let h='<h1>📊 仪表盘</h1><p class="subtitle">'+fmtDate(td)+(streak?' · 🔥 已连续复习 '+streak+' 天':' · 坚持就是胜利 💪')+'</p>';
   h+='<div class="stat-grid">';
   h+='<div class="stat-card bad"><div class="stat-val">'+st.due+'</div><div class="stat-lbl">今日待复习'+(st.overdue?' (含'+st.overdue+'题逾期)':'')+'</div></div>';
   h+='<div class="stat-card pri"><div class="stat-val">'+st.active+'</div><div class="stat-lbl">学习中</div></div>';
@@ -445,10 +458,11 @@ function doReview(id,correct){
   if(!correct){toast('❌ 已记录，明天再复习这道题');}
   if(r.newlyMastered){toast('🎉 恭喜掌握！这道题以后不再需要复习了');confetti();}
   if(_revDone>=_revTotal){
-    confetti(120);
+    const streak=currentStreak();
+    confetti(Math.min(120+streak*12,260));
     setTimeout(()=>{
-      main.innerHTML='<h1>📝 今日复习</h1><div class="empty"><div class="icon">🎉</div><h3>今日复习全部完成！</h3><p>太棒了！今天完成了 '+_revTotal+' 道题目的复习。</p><button class="btn btn-pri" style="margin-top:16px" onclick="nav(\'dash\')">返回仪表盘</button></div>';
-      confetti(80);
+      main.innerHTML='<h1>📝 今日复习</h1><div class="empty"><div class="icon">🎉</div><h3>今日复习全部完成！</h3><p>太棒了！今天完成了 '+_revTotal+' 道题目的复习。'+(streak?'<br>🔥 已连续复习 '+streak+' 天！':'')+'</p><button class="btn btn-pri" style="margin-top:16px" onclick="nav(\'dash\')">返回仪表盘</button></div>';
+      confetti(Math.min(60+streak*10,180));
     },400);
   }
 }
