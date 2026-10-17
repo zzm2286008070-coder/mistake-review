@@ -455,10 +455,10 @@ function doReview(id,correct){
   if(r.newlyMastered){toast('🎉 恭喜掌握！这道题以后不再需要复习了');confetti();}
   if(_revDone>=_revTotal){
     const streak=currentStreak();
-    confetti(Math.min(120+streak*12,260));
+    confetti(Math.min(240+streak*15,440));
     setTimeout(()=>{
       main.innerHTML='<h1>📝 今日复习</h1><div class="empty"><div class="icon">🎉</div><h3>今日复习全部完成！</h3><p>太棒了！今天完成了 '+_revTotal+' 道题目的复习。'+(streak?'<br>🔥 已连续复习 '+streak+' 天！':'')+'</p><button class="btn btn-pri" style="margin-top:16px" onclick="nav(\'dash\')">返回仪表盘</button></div>';
-      confetti(Math.min(60+streak*10,180));
+      confetti(Math.min(150+streak*10,320));
     },400);
   }
 }
@@ -747,41 +747,55 @@ function toast(msg){
 }
 let _CFP=[];let _CFRAF=null;
 function confetti(n){
-  n=n||60;
+  n=n||150;
   const wrap=document.getElementById('confetti');
   let cv=wrap.querySelector('canvas');
   if(!cv){cv=document.createElement('canvas');wrap.appendChild(cv);}
   const W=cv.width=wrap.clientWidth||window.innerWidth,H=cv.height=wrap.clientHeight||window.innerHeight;
   const ctx=cv.getContext('2d');
-  const cx=W/2,cy=H*0.45;
   const COLS=['#5b8def','#22c55e','#f59e0b','#ef4444','#a855f7','#ec4899','#06b6d4','#f43f5e','#facc15','#14b8a6','#fb923c','#eab308'];
   const HEARTS=['❤️','🧡','💛','💚','💙','💜','💖'];
   const STARS=['⭐','🌟','✨'];
   const PARTY=['🎉','🎊','🎈','💫','🎀','🥳'];
   for(let i=0;i<n;i++){
-    const a=Math.random()*Math.PI*2,sp=Math.random()*6+5;
     const r=Math.random();
     let type,glyph=null;
     if(r<0.16){type='circle';}else if(r<0.30){type='square';}else if(r<0.40){type='ribbon';}
     else if(r<0.62){type='heart';glyph=HEARTS[Math.floor(Math.random()*HEARTS.length)];}
     else if(r<0.84){type='star';glyph=STARS[Math.floor(Math.random()*STARS.length)];}
     else{type='party';glyph=PARTY[Math.floor(Math.random()*PARTY.length)];}
-    const size=glyph?(Math.random()*12+14):(Math.random()*9+6);
-    _CFP.push({x:cx,y:cy,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-2,rot:Math.random()*Math.PI*2,vr:(Math.random()-0.5)*0.25,g:Math.random()*0.08+0.16,life:0.9+Math.random()*0.1,type,size,col:COLS[Math.floor(Math.random()*COLS.length)],glyph});
+    const size=glyph?(Math.random()*13+13):(Math.random()*10+6);
+    const up=Math.random()<0.35;                     // 一部分向上抛起，形成绽放感
+    _CFP.push({
+      x:Math.random()*W,                             // 满屏宽度散落
+      y:-Math.random()*80-10,                        // 从屏幕上方外落下
+      vx:(Math.random()-0.5)*2.5,
+      vy:up?-(Math.random()*7+3):(Math.random()*3+1),
+      rot:Math.random()*Math.PI*2,
+      vr:(Math.random()-0.5)*0.3,
+      sway:Math.random()*40+15,                      // 左右摇摆幅度
+      spd:Math.random()*0.03+0.015,
+      ph:Math.random()*Math.PI*2,
+      g:Math.random()*0.05+0.07,
+      delay:Math.random()*2.2,                       // 错峰出现，持续撒花
+      type,size,col:COLS[Math.floor(Math.random()*COLS.length)],glyph
+    });
   }
   if(_CFRAF)return;
-  let last=performance.now();
+  let last=performance.now(),t0=performance.now();
   const step=(now)=>{
     const dt=Math.min((now-last)/16.7,2.5);last=now;
+    const T=(now-t0)/16.7;
     ctx.clearRect(0,0,W,H);
     for(let i=_CFP.length-1;i>=0;i--){
       const p=_CFP[i];
-      p.vy+=p.g*dt;p.vx*=Math.pow(0.99,dt);
-      p.x+=p.vx*dt;p.y+=p.vy*dt;p.rot+=p.vr*dt;
-      p.life-=dt/150;
-      if(p.life<=0){_CFP.splice(i,1);continue;}
+      if(p.delay>0){p.delay-=dt/60;continue;}
+      p.vy+=p.g*dt;
+      p.x+=(p.vx+Math.sin(T*p.spd+p.ph)*p.sway*0.06)*dt;
+      p.y+=p.vy*dt;
+      p.rot+=p.vr*dt;
+      if(p.y>H+50){_CFP.splice(i,1);continue;}
       ctx.save();
-      ctx.globalAlpha=Math.max(0,Math.min(1,p.life*4));
       ctx.translate(p.x,p.y);ctx.rotate(p.rot);
       if(p.glyph){
         ctx.font=Math.round(p.size)+'px sans-serif';
@@ -962,7 +976,7 @@ setInterval(checkAlarm,30000);
 registerSW();
 if(REM.enabled)scheduleReminderSync();
 dash();
-confetti(60);
+confetti(100);
 
 // Check overdue on load
 const ov=todayReviews().filter(p=>p.next<today()).length;
