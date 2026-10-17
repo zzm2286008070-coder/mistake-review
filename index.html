@@ -445,8 +445,10 @@ function doReview(id,correct){
   if(!correct){toast('❌ 已记录，明天再复习这道题');}
   if(r.newlyMastered){toast('🎉 恭喜掌握！这道题以后不再需要复习了');confetti();}
   if(_revDone>=_revTotal){
+    confetti(120);
     setTimeout(()=>{
       main.innerHTML='<h1>📝 今日复习</h1><div class="empty"><div class="icon">🎉</div><h3>今日复习全部完成！</h3><p>太棒了！今天完成了 '+_revTotal+' 道题目的复习。</p><button class="btn btn-pri" style="margin-top:16px" onclick="nav(\'dash\')">返回仪表盘</button></div>';
+      confetti(80);
     },400);
   }
 }
@@ -720,18 +722,19 @@ function toast(msg){
   el.className='toast';el.textContent=msg;ct.appendChild(el);
   setTimeout(()=>{el.style.opacity='0';el.style.transition='opacity .3s';setTimeout(()=>el.remove(),300);},2200);
 }
-function confetti(){
-  const ct=document.getElementById('confetti'),cols=['#5b8def','#22c55e','#f59e0b','#ef4444','#a855f7','#ec4899','#06b6d4'],frag=document.createDocumentFragment();
-  for(let i=0;i<50;i++){
+function confetti(n){
+  n=n||50;
+  const ct=document.getElementById('confetti'),cols=['#5b8def','#22c55e','#f59e0b','#ef4444','#a855f7','#ec4899','#06b6d4','#f43f5e','#facc15','#14b8a6'],frag=document.createDocumentFragment();
+  for(let i=0;i<n;i++){
     const p=document.createElement('div');p.className='confetti-p';
     p.style.left=Math.random()*100+'%';p.style.top=-(Math.random()*40+10)+'px';
     p.style.background=cols[Math.floor(Math.random()*cols.length)];
-    p.style.animationDelay=Math.random()*.4+'s';p.style.animationDuration=(Math.random()*.8+1)+'s';
+    p.style.animationDelay=Math.random()*.5+'s';p.style.animationDuration=(Math.random()*1.1+1)+'s';
     p.style.borderRadius=Math.random()>.5?'50%':'2px';
-    p.style.width=(Math.random()*8+6)+'px';p.style.height=(Math.random()*8+6)+'px';
+    p.style.width=(Math.random()*9+6)+'px';p.style.height=(Math.random()*9+6)+'px';
     frag.appendChild(p);
   }
-  ct.appendChild(frag);setTimeout(()=>{ct.innerHTML='';},2000);
+  ct.appendChild(frag);setTimeout(()=>{ct.innerHTML='';},2600);
 }
 
 // ═══════════════════════════════════════════
