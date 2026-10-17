@@ -753,18 +753,10 @@ function confetti(n){
   if(!cv){cv=document.createElement('canvas');wrap.appendChild(cv);}
   const W=cv.width=wrap.clientWidth||window.innerWidth,H=cv.height=wrap.clientHeight||window.innerHeight;
   const ctx=cv.getContext('2d');
-  const COLS=['#5b8def','#22c55e','#f59e0b','#ef4444','#a855f7','#ec4899','#06b6d4','#f43f5e','#facc15','#14b8a6','#fb923c','#eab308'];
-  const HEARTS=['❤️','🧡','💛','💚','💙','💜','💖'];
-  const STARS=['⭐','🌟','✨'];
   const PARTY=['🎉','🎊','🎈','💫','🎀','🥳'];
   for(let i=0;i<n;i++){
-    const r=Math.random();
-    let type,glyph=null;
-    if(r<0.16){type='circle';}else if(r<0.30){type='square';}else if(r<0.40){type='ribbon';}
-    else if(r<0.62){type='heart';glyph=HEARTS[Math.floor(Math.random()*HEARTS.length)];}
-    else if(r<0.84){type='star';glyph=STARS[Math.floor(Math.random()*STARS.length)];}
-    else{type='party';glyph=PARTY[Math.floor(Math.random()*PARTY.length)];}
-    const size=glyph?(Math.random()*13+13):(Math.random()*10+6);
+    const glyph=PARTY[Math.floor(Math.random()*PARTY.length)];
+    const size=Math.random()*13+13;
     const up=Math.random()<0.35;                     // 一部分向上抛起，形成绽放感
     _CFP.push({
       x:Math.random()*W,                             // 满屏宽度散落
@@ -778,7 +770,7 @@ function confetti(n){
       ph:Math.random()*Math.PI*2,
       g:Math.random()*0.05+0.07,
       delay:Math.random()*2.2,                       // 错峰出现，持续撒花
-      type,size,col:COLS[Math.floor(Math.random()*COLS.length)],glyph
+      size,glyph
     });
   }
   if(_CFRAF)return;
@@ -797,16 +789,9 @@ function confetti(n){
       if(p.y>H+50){_CFP.splice(i,1);continue;}
       ctx.save();
       ctx.translate(p.x,p.y);ctx.rotate(p.rot);
-      if(p.glyph){
-        ctx.font=Math.round(p.size)+'px sans-serif';
-        ctx.textAlign='center';ctx.textBaseline='middle';
-        ctx.fillText(p.glyph,0,0);
-      }else{
-        ctx.fillStyle=p.col;
-        if(p.type==='circle'){ctx.beginPath();ctx.arc(0,0,p.size/2,0,Math.PI*2);ctx.fill();}
-        else if(p.type==='square'){ctx.fillRect(-p.size/2,-p.size/2,p.size,p.size);}
-        else{ctx.fillRect(-p.size,-p.size/3,p.size*2,p.size*0.66);}
-      }
+      ctx.font=Math.round(p.size)+'px sans-serif';
+      ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText(p.glyph,0,0);
       ctx.restore();
     }
     if(_CFP.length)_CFRAF=requestAnimationFrame(step);
