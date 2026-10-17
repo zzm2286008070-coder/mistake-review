@@ -1,0 +1,13 @@
+{
+  "name": "mistake-review",
+  "version": "1.0.0",
+  "private": true,
+  "description": "错题回顾 - 间隔重复法错题本 PWA（含每日推送提醒）",
+  "scripts": {
+    "remind": "node scripts/push.js"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "web-push": "^3.6.7"
+  }
+}

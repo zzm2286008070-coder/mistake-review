@@ -204,7 +204,7 @@ function load(){
     return r;
   }catch{return {books:[],probs:[]};}
 }
-function save(){localStorage.setItem(KEY,JSON.stringify(D));updateBadge();updateAppBadge();}
+function save(){localStorage.setItem(KEY,JSON.stringify(D));updateBadge();updateAppBadge();scheduleReminderSync();}
 function uid(){return 'id_'+Date.now()+'_'+Math.random().toString(36).slice(2,8);}
 
 // Sync config
@@ -223,6 +223,10 @@ let REM=loadRemind();
 // GITHUB GIST SYNC
 // ═══════════════════════════════════════════
 const GIST_FN='mistake-review.json';
+const REMIND_FN='reminder.json';
+const TZ='Asia/Shanghai';
+// Web Push VAPID 公钥（私钥保存在 GitHub secret，勿泄露）
+const VAPID_PUBLIC_KEY='BHbAQ6Y7Wu4u9iRstrCqo6sahCPsOAR7WzV2diPFVgvI9NZtZNr5vNREwc8R1D68KdDg_aeRD3JifNhxZs-mhVY';
 async function gistAPI(method,path,body,token){
   const opts={method,headers:{'Authorization':'Bearer '+(token||SC.token),'Accept':'application/vnd.github.v3+json'}};
   if(body){opts.headers['Content-Type']='application/json';opts.body=JSON.stringify(body);}
@@ -762,19 +766,22 @@ async function enableReminder(){
   if(perm==='default')perm=await Notification.requestPermission();
   if(perm!=='granted'){toast('❌ 未授权通知（图标红点数字需要它），请在浏览器/系统设置中允许');statsPage();return;}
   REM.enabled=true;saveRemind(REM);updateAppBadge();
-  toast('✅ 闹钟提醒已开启（每天 '+REM.time+' 响）');
+  syncReminderToGist();
+  toast('✅ 闹钟提醒已开启（每天 '+REM.time+' 响，app 关闭也会推送）');
   statsPage();
 }
-function disableReminder(){REM.enabled=false;saveRemind(REM);toast('已关闭闹钟提醒');statsPage();}
+function disableReminder(){REM.enabled=false;saveRemind(REM);syncReminderToGist();toast('已关闭闹钟提醒');statsPage();}
 function onRemTime(v){
   if(!v)return;REM.time=v;
   if(REM.enabled){REM.lastAlarm=null;}
   saveRemind(REM);
+  syncReminderToGist();
 }
 function reminderCard(){
   const perm=('Notification' in window)?Notification.permission:'unsupported';
+  const pushOK=('serviceWorker' in navigator)&&('PushManager' in window);
   let h='<div class="card"><h3>⏰ 闹钟提醒</h3>';
-  h+='<p style="font-size:13px;color:var(--txt2);margin-bottom:12px">每天到点提醒你复习，并在手机/桌面图标右上角显示待复习题数（红点数字）。</p>';
+  h+='<p style="font-size:13px;color:var(--txt2);margin-bottom:12px">每天到点提醒你复习，并在手机/桌面图标右上角显示待复习题数（红点数字）。开启后即使 app 完全关闭也能推送提醒。</p>';
   h+='<div class="fg"><label class="fl">提醒时间</label><div class="frow"><input type="time" class="fi" id="remTime" value="'+REM.time+'" onchange="onRemTime(this.value)"><button class="btn btn-pri" style="flex:0 0 auto" onclick="enableReminder()">'+(REM.enabled?'✅ 更新提醒':'开启提醒')+'</button></div></div>';
   let st;
   if(perm==='unsupported')st='此浏览器不支持通知';
@@ -783,10 +790,94 @@ function reminderCard(){
   else if(perm==='granted')st='已授权通知，但尚未开启提醒';
   else st='尚未授权通知，点「开启提醒」后会弹出授权';
   h+='<p style="font-size:13px;margin-top:10px" id="remStatus">'+st+'</p>';
+  if(!pushOK&&REM.enabled)h+='<p style="font-size:12px;color:var(--txt2)">⚠️ 当前浏览器不支持后台推送，app 关闭时无法提醒（仅打开时有效）。</p>';
+  if(REM.enabled&&!SC.gistId)h+='<p style="font-size:12px;color:var(--txt2)">⚠️ 尚未连接云端备份，关闭 app 提醒需要先做一次「数据管理 → 连接云同步」。</p>';
   h+='<div class="btn-group" style="margin-top:8px">';
-  if(REM.enabled)h+='<button class="btn btn-out btn-sm" onclick="disableReminder()">关闭提醒</button>';
+  if(REM.enabled){
+    h+='<button class="btn btn-out btn-sm" onclick="disableReminder()">关闭提醒</button>';
+    h+='<button class="btn btn-out btn-sm" onclick="testPush()">发送测试通知</button>';
+  }
   h+='</div></div>';
   return h;
+}
+
+// ═══════════════════════════════════════════
+// WEB PUSH —— 订阅 & 同步到 Gist（app 关闭也提醒）
+// ═══════════════════════════════════════════
+let SW_REG=null;
+let REM_SYNC_T=null;
+let REM_LAST_PUT='';
+
+function urlBase64ToUint8Array(s){
+  const pad=s.replace(/-/g,'+').replace(/_/g,'/');
+  const b64=pad.padEnd(Math.ceil(pad.length/4)*4,'=');
+  const raw=atob(b64);
+  const u=new Uint8Array(raw.length);
+  for(let i=0;i<raw.length;i++)u[i]=raw.charCodeAt(i);
+  return u;
+}
+
+async function registerSW(){
+  if(!('serviceWorker' in navigator))return null;
+  if(SW_REG)return SW_REG;
+  try{SW_REG=await navigator.serviceWorker.register('sw.js');return SW_REG;}catch(e){return null;}
+}
+
+async function ensureSubscription(){
+  if(!('serviceWorker' in navigator)||!('PushManager' in window))return null;
+  const reg=await registerSW();
+  if(!reg)return null;
+  try{
+    let sub=await reg.pushManager.getSubscription();
+    if(!sub){
+      sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlBase64ToUint8Array(VAPID_PUBLIC_KEY)});
+    }
+    return sub;
+  }catch(e){return null;}
+}
+
+async function syncReminderToGist(){
+  if(!SC.gistId)return;           // 未连接云同步则跳过（关闭 app 提醒依赖 Gist）
+  const sub=await ensureSubscription();
+  let lastSent=REM.lastSent||null;
+  // 保留服务器端已记录的 lastSent，避免覆盖导致当天重复推送
+  try{
+    const j=await gistAPI('GET','/'+SC.gistId);
+    const f=j.files&&j.files[REMIND_FN];
+    if(f&&f.content){
+      const old=JSON.parse(f.content);
+      if(old.lastSent)lastSent=old.lastSent;
+    }
+  }catch(e){}
+  const cfg={
+    enabled:REM.enabled,
+    time:REM.time,
+    tz:TZ,
+    dueCount:todayReviews().length,
+    subscription:sub?sub.toJSON():null,
+    lastSent:lastSent
+  };
+  const s=JSON.stringify(cfg);
+  if(s===REM_LAST_PUT)return;
+  try{
+    await gistAPI('PATCH','/'+SC.gistId,{files:{[REMIND_FN]:{content:s}}});
+    REM_LAST_PUT=s;
+  }catch(e){/* 静默失败，避免打扰用户 */}
+}
+
+function scheduleReminderSync(){
+  clearTimeout(REM_SYNC_T);
+  REM_SYNC_T=setTimeout(syncReminderToGist,2000);
+}
+
+async function testPush(){
+  if(!('Notification' in window)||Notification.permission!=='granted'){toast('请先开启提醒并授权通知');return;}
+  const reg=await registerSW();
+  try{
+    if(reg){await reg.showNotification('📝 错题回顾（测试）',{body:'如果你看到这条，说明通知链路正常 ✅',icon:'icon.png',badge:'icon.png'});}
+    else{new Notification('📝 错题回顾（测试）',{body:'测试通知',icon:'icon.png'});}
+    toast('✅ 已发送测试通知');
+  }catch(e){toast('❌ 测试通知发送失败');}
 }
 
 // ═══════════════════════════════════════════
@@ -801,6 +892,8 @@ updateBadge();
 updateAppBadge();
 checkAlarm();
 setInterval(checkAlarm,30000);
+registerSW();
+if(REM.enabled)scheduleReminderSync();
 dash();
 
 // Check overdue on load
