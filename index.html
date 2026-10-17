@@ -925,6 +925,7 @@ setInterval(checkAlarm,30000);
 registerSW();
 if(REM.enabled)scheduleReminderSync();
 dash();
+confetti(60);
 
 // Check overdue on load
 const ov=todayReviews().filter(p=>p.next<today()).length;
