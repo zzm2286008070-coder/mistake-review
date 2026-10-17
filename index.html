@@ -144,12 +144,17 @@ tr:hover td{background:#f8fafc}
 }
 @keyframes slideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 /* ── Confetti ── */
-.confetti-wrap{position:fixed;inset:0;pointer-events:none;z-index:300}
+.confetti-wrap{position:fixed;inset:0;pointer-events:none;z-index:300;overflow:hidden}
 .confetti-p{
   position:absolute;width:10px;height:10px;
-  animation:cf 1.2s ease-out forwards;
+  animation:cf 3.4s ease-in-out forwards;
 }
-@keyframes cf{0%{transform:translateY(-100px) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
+@keyframes cf{
+  0%{transform:translateY(-120px) translateX(0) rotate(0deg);opacity:0}
+  6%{opacity:1}
+  82%{opacity:1}
+  100%{transform:translateY(115vh) translateX(var(--sway,0)) rotate(var(--spin,360deg));opacity:0}
+}
 /* ── Responsive ── */
 @media(max-width:768px){
   body{flex-direction:column}
@@ -751,17 +756,27 @@ function toast(msg){
 }
 function confetti(n){
   n=n||50;
-  const ct=document.getElementById('confetti'),cols=['#5b8def','#22c55e','#f59e0b','#ef4444','#a855f7','#ec4899','#06b6d4','#f43f5e','#facc15','#14b8a6'],frag=document.createDocumentFragment();
+  const ct=document.getElementById('confetti'),cols=['#5b8def','#22c55e','#f59e0b','#ef4444','#a855f7','#ec4899','#06b6d4','#f43f5e','#facc15','#14b8a6','#fb923c','#eab308'],frag=document.createDocumentFragment();
   for(let i=0;i<n;i++){
     const p=document.createElement('div');p.className='confetti-p';
-    p.style.left=Math.random()*100+'%';p.style.top=-(Math.random()*40+10)+'px';
+    const t=Math.random();
+    p.style.left=Math.random()*100+'%';
+    p.style.top=-(Math.random()*40+10)+'px';
     p.style.background=cols[Math.floor(Math.random()*cols.length)];
-    p.style.animationDelay=Math.random()*.5+'s';p.style.animationDuration=(Math.random()*1.1+1)+'s';
-    p.style.borderRadius=Math.random()>.5?'50%':'2px';
-    p.style.width=(Math.random()*9+6)+'px';p.style.height=(Math.random()*9+6)+'px';
+    p.style.animationDelay=(Math.random()*.9)+'s';
+    p.style.animationDuration=(Math.random()*1.4+2.6)+'s';                 // 2.6~4s 慢速飘落
+    p.style.setProperty('--sway',(Math.random()*80-40).toFixed(0)+'px');  // 左右漂移 -40~40px
+    p.style.setProperty('--spin',(Math.random()*360+180).toFixed(0)+'deg');// 旋转 180~540deg
+    if(t<0.34){                 // 圆点
+      const s=Math.random()*8+6;p.style.width=s+'px';p.style.height=s+'px';p.style.borderRadius='50%';
+    }else if(t<0.67){           // 方形纸片
+      const s=Math.random()*8+7;p.style.width=s+'px';p.style.height=s+'px';p.style.borderRadius=(Math.random()*3+1)+'px';
+    }else{                      // 细长彩带
+      p.style.width=(Math.random()*6+10)+'px';p.style.height=(Math.random()*3+4)+'px';p.style.borderRadius='3px';
+    }
     frag.appendChild(p);
   }
-  ct.appendChild(frag);setTimeout(()=>{ct.innerHTML='';},2600);
+  ct.appendChild(frag);setTimeout(()=>{ct.innerHTML='';},5200);
 }
 
 // ═══════════════════════════════════════════
