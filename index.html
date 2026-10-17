@@ -204,7 +204,7 @@ function load(){
     return r;
   }catch{return {books:[],probs:[]};}
 }
-function save(){localStorage.setItem(KEY,JSON.stringify(D));updateBadge();}
+function save(){localStorage.setItem(KEY,JSON.stringify(D));updateBadge();updateAppBadge();}
 function uid(){return 'id_'+Date.now()+'_'+Math.random().toString(36).slice(2,8);}
 
 // Sync config
@@ -212,6 +212,12 @@ const SK='wr_sync_v1';
 function loadSync(){try{const r=JSON.parse(localStorage.getItem(SK));return r||{token:'',gistId:'',lastSync:null};}catch{return{token:'',gistId:'',lastSync:null};}}
 function saveSyncCfg(c){localStorage.setItem(SK,JSON.stringify(c));}
 let SC=loadSync();
+
+// Reminder / 闹钟提醒配置
+const RK='wr_remind_v1';
+function loadRemind(){try{const r=JSON.parse(localStorage.getItem(RK));return Object.assign({enabled:false,time:'20:00',lastAlarm:null},r);}catch{return{enabled:false,time:'20:00',lastAlarm:null};}}
+function saveRemind(r){localStorage.setItem(RK,JSON.stringify(r));}
+let REM=loadRemind();
 
 // ═══════════════════════════════════════════
 // GITHUB GIST SYNC
@@ -630,6 +636,7 @@ function statsPage(){
   }
   sy+='</div>';
   h+=sy;
+  h+=reminderCard();
 
   main.innerHTML=h;
 }
@@ -724,6 +731,65 @@ function confetti(){
 }
 
 // ═══════════════════════════════════════════
+// ICON BADGE & ALARM REMINDER
+// ═══════════════════════════════════════════
+function updateAppBadge(){
+  const n=todayReviews().length;
+  try{
+    if('setAppBadge' in navigator){
+      if(n>0)navigator.setAppBadge(n);else navigator.clearAppBadge();
+    }
+  }catch(e){}
+}
+function checkAlarm(){
+  if(!REM.enabled)return;
+  const td=today();
+  if(REM.lastAlarm===td)return;
+  const now=new Date();
+  const hm=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  if(hm<REM.time)return;
+  const n=todayReviews().length;
+  if(n<=0)return;
+  REM.lastAlarm=td;saveRemind(REM);
+  toast('⏰ 该复习啦！今天还有 '+n+' 道错题待复习');
+  if('Notification' in window&&Notification.permission==='granted'){
+    try{new Notification('📝 错题回顾',{body:'该复习啦！今天还有 '+n+' 道错题待复习',icon:'icon.png'});}catch(e){}
+  }
+}
+async function enableReminder(){
+  if(!('Notification' in window)){toast('❌ 此浏览器不支持通知');return;}
+  let perm=Notification.permission;
+  if(perm==='default')perm=await Notification.requestPermission();
+  if(perm!=='granted'){toast('❌ 未授权通知（图标红点数字需要它），请在浏览器/系统设置中允许');statsPage();return;}
+  REM.enabled=true;saveRemind(REM);updateAppBadge();
+  toast('✅ 闹钟提醒已开启（每天 '+REM.time+' 响）');
+  statsPage();
+}
+function disableReminder(){REM.enabled=false;saveRemind(REM);toast('已关闭闹钟提醒');statsPage();}
+function onRemTime(v){
+  if(!v)return;REM.time=v;
+  if(REM.enabled){REM.lastAlarm=null;}
+  saveRemind(REM);
+}
+function reminderCard(){
+  const perm=('Notification' in window)?Notification.permission:'unsupported';
+  let h='<div class="card"><h3>⏰ 闹钟提醒</h3>';
+  h+='<p style="font-size:13px;color:var(--txt2);margin-bottom:12px">每天到点提醒你复习，并在手机/桌面图标右上角显示待复习题数（红点数字）。</p>';
+  h+='<div class="fg"><label class="fl">提醒时间</label><div class="frow"><input type="time" class="fi" id="remTime" value="'+REM.time+'" onchange="onRemTime(this.value)"><button class="btn btn-pri" style="flex:0 0 auto" onclick="enableReminder()">'+(REM.enabled?'✅ 更新提醒':'开启提醒')+'</button></div></div>';
+  let st;
+  if(perm==='unsupported')st='此浏览器不支持通知';
+  else if(perm==='denied')st='❌ 通知权限被拒绝（请在浏览器/系统设置中允许后重试）';
+  else if(perm==='granted'&&REM.enabled)st='✅ 已开启 · 每天 '+REM.time+' 提醒 · 当前待复习 '+todayReviews().length+' 题';
+  else if(perm==='granted')st='已授权通知，但尚未开启提醒';
+  else st='尚未授权通知，点「开启提醒」后会弹出授权';
+  h+='<p style="font-size:13px;margin-top:10px" id="remStatus">'+st+'</p>';
+  h+='<div class="btn-group" style="margin-top:8px">';
+  if(REM.enabled)h+='<button class="btn btn-out btn-sm" onclick="disableReminder()">关闭提醒</button>';
+  h+='</div></div>';
+  return h;
+}
+
+// ═══════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════
 document.querySelectorAll('.nav-item').forEach(el=>el.addEventListener('click',()=>{const p=el.dataset.page;if(p)nav(p);}));
@@ -732,6 +798,9 @@ document.addEventListener('keydown',e=>{
   if(e.ctrlKey&&e.key>='1'&&e.key<='6'){e.preventDefault();nav(pages[parseInt(e.key)-1]);}
 });
 updateBadge();
+updateAppBadge();
+checkAlarm();
+setInterval(checkAlarm,30000);
 dash();
 
 // Check overdue on load
